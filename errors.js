@@ -8,12 +8,12 @@ exports.handleCustomErrors = (err,req, res, next) => {
  //which error codes??? 
 exports.handlePsqlErrors = (err, req, res, next) => {
     console.log(err)
-    if (err.code === '22P02') {
-        res.status(400).send({ message: 'Bad Request' });
-    } else if (err.code === '23503') {
-        res.status(404).send({ message: ' not found' });
-    }
-    else (next(err));
+    // if (err.code === '22P02') {
+    //     res.status(400).send({ message: 'Bad Request' });
+    // } else if (err.code === '23503') {
+    //     res.status(404).send({ message: 'Not found' });
+    // }
+    // else (next(err));
 };
 
 

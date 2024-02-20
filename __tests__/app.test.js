@@ -5,19 +5,21 @@ const db = require("../db/connection.js");
 const data = require("../db/data/test-data");
 const endPoints = require("../endpoints.json");
 
+require("jest-sorted");
+
+
 beforeEach(() =>  seed(data));
-  
 afterAll(() => db.end());
   
 
-describe('GET api/topics', () => {
+describe('GET /api/topics', () => {
     test('should return an array of topics each with a slug and description property', () => {
       return request(app)
         .get("/api/topics")
         .expect(200)
         .then((response) => {
           const { topics } = response.body; 
-          console.log(topics)
+          //console.log(topics)
           expect(topics).toHaveLength(3); 
           topics.forEach((topic) => {
             expect(topic).toHaveProperty("slug", expect.any(String));
@@ -37,6 +39,7 @@ describe('GET api/topics', () => {
   });
 
 describe("GET /api", () => {
+
   test("Returns an object describing all the available endpoints on the API", () => {
       return request(app)
       .get("/api")
@@ -46,6 +49,10 @@ describe("GET /api", () => {
         //console.log(endPoints)
       })
   })
+
+  test("return 404 if requested endpoint not exist", () => {
+    return request(app).get("/api/not-exist/").expect(404);
+  });
 })
 
 describe("GET /api/articles/:article_id", () => {
@@ -93,6 +100,37 @@ describe("GET /api/articles/:article_id", () => {
           expect(msg).toBe("No article found");
         });
   });
+})
 
- 
+describe("GET /api/articles", () => {
+
+  test("GET 200: sends an array of article objects with the required properties", () => {
+    return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(( response ) => {
+            const body = response.body ;
+            //console.log(body)
+            body.articles.forEach(article => {
+                expect(typeof article.article_id).toBe("number");
+                expect(typeof article.author).toBe("string");
+                expect(typeof article.title).toBe("string");
+                expect(typeof article.topic).toBe("string");
+                expect(typeof article.created_at).toBe("string");
+                expect(typeof article.votes).toBe("number");
+                expect(typeof article.article_img_url).toBe("string");
+                expect(article.response ).toBe(undefined);
+                expect(typeof article.comment_count).toBe("string");
+            });
+        });
+  });
+
+  test('should sort articles in date order', () => {  
+    return request(app)
+    .get("/api/articles")
+    .expect(200)
+    .then((response) => {
+      expect(response.body.articles).toBeSortedBy(response.body.created_at, { descending: true })
+    })
+  });
 })

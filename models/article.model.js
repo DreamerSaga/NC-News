@@ -2,7 +2,7 @@ const db = require('../db/connection');
 
 exports.selectAllArticles = () => {
     const query = `
-        SELECT articles.*, COUNT(comments.comment_id) AS comment_count 
+        SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url , COUNT(comments.comment_id) AS comment_count 
         FROM articles
         LEFT JOIN comments ON articles.article_id = comments.article_id
         GROUP BY articles.article_id
@@ -10,10 +10,9 @@ exports.selectAllArticles = () => {
     `;
    
     return db.query(query)
-        .then(({ rows }) => {
-            rows.forEach(row => delete row.body); // Remove the 'body' property
+        .then((result) => {
             //console.log(rows)
-            return rows ;
+            return result.rows ;
         })
         .catch(error => {
             throw error;

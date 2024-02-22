@@ -4,8 +4,7 @@ const app = require("../app.js")
 const db = require("../db/connection.js");
 const data = require("../db/data/test-data");
 const endPoints = require("../endpoints.json");
-
-require("jest-sorted");
+const toBeSortedBy = require("jest-sorted");
 
 
 beforeEach(() => seed(data));
@@ -506,3 +505,34 @@ describe("PATCH  /api/articles/:article_id", () => {
   });
 })
 
+
+// DELETE /api/...
+describe("DELETE /api/comments/:comment_id", () => {
+
+  test("204 - responds with no content", () => {
+    return request(app)
+    .delete("/api/comments/1")
+    .expect(204)
+    .then(({body}) => {
+      expect(body).toEqual({})
+  })
+  });
+
+  test("404 - when non-existent comment id is given", () => {
+    return request(app)
+      .delete("/api/comments/999")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("No comments found");
+      });
+  });
+  
+  test("400 - when invalid comment id is given", () => {
+    return request(app)
+      .delete("/api/comments/pikachu")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad Request");
+      });
+  });
+});

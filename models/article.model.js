@@ -35,21 +35,6 @@ exports.selectArticle = (id) => {
     });
 }
 
-
-// exports.updateArticleById = (req) =>{
-//   selectAllArticles(req.params.article_id)
-//   .then(() => {
-//     const values = [req.body.inc_votes, req.params.article_id];
-//     const sqlQuery = `UPDATE articles
-//   SET votes = votes + $1
-//   WHERE article_id = $2
-//   RETURNING *`;
-//     return db.query(sqlQuery, values);
-//   })
-//   .then(({ rows }) => {
-//     return rows[0];
-//   });
-
 exports.updateArticleVotesByArticleId = (updatedVoteCount, article_id) => {
   const values = [updatedVoteCount, article_id];
   return db.query(`UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *`,values)

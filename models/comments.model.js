@@ -1,20 +1,9 @@
 const db = require("../db/connection")
+const {usernameValidation} = require("../utils/usernameValidation");
+const {selectAllArticles} = require("../models/article.model.js")
 
 
 exports.selectCommentsByArticleId = (article_id) => {
-    //    return db.query(`
-    //     SELECT comment_id, body, author, votes, created_at 
-    //     FROM comments 
-    //     WHERE article_id = $1`, [article_id])
-    //     .then(({rows}) => {
-    //         if(!rows[0]) {
-    //             return Promise.reject({
-    //                 status: 404,
-    //                 msg : `No comments found for article_id: ${article_id}`
-    //             })
-    //         }
-    //         return rows
-    //     })
     let articlesCount = 0;
     
     return db.query(`SELECT COUNT(*) FROM articles;`)
@@ -35,4 +24,45 @@ exports.selectCommentsByArticleId = (article_id) => {
         
         else return rows
     })
+
+    // return db.query(`
+    // SELECT comments.comment_id, comments.votes, comments.created_at, comments.author, comments.body 
+    // FROM comments 
+    // WHERE comments.article_id = $1 
+    // ORDER BY created_at DESC;`, [article_id])
+    // .then(({ rows }) => {
+    //     console.log(rows,"<-------- HERE")
+    //   if (rows.length === 0) {
+    //     return Promise.reject({ status: 404, msg: `No comments found for article_id: ${article_id}` });
+    //   }
+    //   return rows;
+    // });
 }
+
+
+exports.insertCommentByArticleId = (req, res) => {
+   
+    if (!Object.keys(req.body).includes("body" && "username")) {
+        return Promise.reject({ status: 400, msg: "Bad Request" });
+      }
+    
+      const values = [req.body.body, req.params.article_id, req.body.username];
+      //console.log(values, "HERE")
+      const sqlQuery = `INSERT INTO comments
+      (body, article_id, author)
+      VALUES
+      ($1, $2, $3)
+      RETURNING *`;
+    
+      return selectAllArticles(req.params.article_id)
+        .then(() => {
+          return usernameValidation(req.body.username);
+        })
+        .then(() => {
+          return db.query(sqlQuery, values);
+        })
+        .then(({ rows }) => {
+            //console.log(rows[0], "HERE")
+            return rows[0];
+        });
+    }

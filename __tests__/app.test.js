@@ -244,8 +244,6 @@ describe("GET /articles/:article_id/comments", () => {
 })
 
 
-
-
 // POST /api/....
 describe("POST /api/articles/:article_id/comments", () => {
   
@@ -294,19 +292,29 @@ describe("POST /api/articles/:article_id/comments", () => {
       });
   });
 
-  //only test that doesnt pass yet - cant get 400, goes straight to 500. all different versions of code..none pass...
-  // test("status:400 returns correct error message if body field is missing", () => {
-  //   const testObj = {
-  //     username: "butter_bridge",
-  //   };
+  //why need to have author in testObj instead of username? otherwise doesnt pass the test, and gets 500.
+  test("status:400 returns correct error message if body field is missing", () => {
+    const testObj = {
+      author: "butter_bridge",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(testObj)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad Request");
+      });
+  //   const newComment = {
+  //     author: 'butter_bridge'
+  // }
   //   return request(app)
-  //     .post("/api/articles/1/comments")
-  //     .send(testObj)
+  //     .post('/api/articles/1/comments')
+  //     .send(newComment)
   //     .expect(400)
-  //     .then(({ body: { msg } }) => {
-  //       expect(msg).toBe("Bad Request");
-  //     });
-  // });
+  //     .then((response) => {
+  //         expect(response.body.msg).toBe('Bad Request')
+  //     })
+})
   // test("status: 400 - returns correct error message if it only contains username, body field is missing", () => {
   //   // return request(app)
   //   //   .post("/api/articles/1/comments")
@@ -387,3 +395,114 @@ describe("POST /api/articles/:article_id/comments", () => {
 
 
 });
+
+
+// PATCH /api/...
+describe("PATCH  /api/articles/:article_id", () => {
+
+  test("Updates the article vote count based on article id and positive increment value", () => {
+    const votesToUpdate = {
+      inc_votes: 17,
+    };
+    return request(app)
+      .patch("/api/articles/11")
+      .send(votesToUpdate)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 11,
+          author: "icellusedkars",
+          title: "Am I a cat?",
+          body: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: 17,
+          article_img_url: expect.any(String),
+        });
+      });
+  });
+
+  test("Updates the article vote count based on article id and negative increment value", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: -1 })
+      .expect(200)
+      .then(({ body }) => {
+        const article = body.article;
+        expect(article).toEqual({
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 99,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        });
+      });
+  });
+
+  test("200 responds with article unchanged if request body is missing inc_votes", () => {
+    return request(app)
+      .patch("/api/articles/11")
+      .send({
+        votes: 10,
+      })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 11,
+          author: "icellusedkars",
+          title: "Am I a cat?",
+          body: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: 0,
+          article_img_url: expect.any(String),
+        });
+      });
+  });
+
+  test("404 responds with appropriate status and error message when given a valid but non-existent id", () => {
+    const votesToUpdate = {
+      inc_votes: 12,
+    };
+    return request(app)
+      .patch("/api/articles/999")
+      .send(votesToUpdate)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("No article found");
+      });
+  });
+
+  test("400 responds with appropriate status and error message when given an invalid article_id (not an integer)", () => {
+    const votesToUpdate = {
+      inc_votes: 12,
+    };
+    return request(app)
+      .patch("/api/articles/pokemon")
+      .send(votesToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
+      });
+  });
+
+  test("400 responds with appropriate status and error message when provided with an invalid request body (inc_votes is not given with an integer value)", () => {
+    const votesToUpdate = {
+      inc_votes: "twelve",
+    };
+    return request(app)
+      .patch("/api/articles/2")
+      .send(votesToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          "Invalid request - must include inc_votes which must be an integer value"
+        );
+      });
+  });
+})
+

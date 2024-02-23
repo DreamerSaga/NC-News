@@ -134,6 +134,37 @@ describe("GET /api/articles", () => {
       })
   });
 
+  test("status:200, should return an articles array of article objects, with correct comment_count value", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles } = body;
+            expect(articles[0]).toMatchObject({
+              author: "icellusedkars",
+              title: "Eight pug gifs that remind me of mitch",
+              article_id: 3,
+              topic: "mitch",
+              created_at: "2020-11-03T09:12:00.000Z",
+              votes: 0,
+              article_img_url:
+                "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+              comment_count: "2",
+            });
+            expect(articles[6]).toMatchObject({
+              author: "butter_bridge",
+              title: "Living in the shadow of a great man",
+              article_id: 1,
+              topic: "mitch",
+              created_at: "2020-07-09T20:11:00.000Z",
+              votes: 100,
+              article_img_url:
+                "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+              comment_count: "11",
+            });
+          });
+      })
+
   // GET /api/articles (topic query)
   test("200 - returns all articles with mitch topics", () => {
     return request(app)
@@ -185,23 +216,14 @@ describe("GET /api/articles", () => {
   });
 
   // DOESNT PASS - how to make it custom error???
-  // test("404 - when non existent topic is given", () => {
-  //   return request(app)
-  //     .get("/api/articles?topic=pikachu")
-  //     .expect(404)
-  //     .then(({ body: { msg } }) => {
-  //       expect(msg).toBe("No article found");
-  //     });
-  // });
-
-//   test('STATUS 404: responds with appropriate error message for when passed a non-existant topic name ', () => {
-//     return request(app)
-//     .get('/api/articles?topic=notATopic')
-//     .expect(404)
-//     .then(result => {
-//         expect(result.body.msg).toBe("Not found")
-//     })
-// });
+  test("404 - when non existent topic is given", () => {
+    return request(app)
+      .get("/api/articles?topic=pikachu")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Topic not found");
+      });
+  });
 })
 
 describe("GET /api/articles/:article_id/comments", () => {
@@ -474,7 +496,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       .send(testObj)
       .expect(404)
       .then(({ body: { msg }}) => {
-        expect(msg).toBe("Not found");
+        expect(msg).toBe("No article found");
       });
   });
 
@@ -638,49 +660,48 @@ describe("DELETE /api/comments/:comment_id", () => {
 });
 
 // GET /api/articles/:article_id (comment_count)
+
+//  
+
 describe("GET /api/articles/:article_id (comment_count)", () => {
 
- test("200 - returns all articles with comment_count", () => {
+  test("status:200 returns article object with added comment_count and correct value", () => {
     return request(app)
-      .get("/api/articles")
+      .get("/api/articles/1")
       .expect(200)
-      .then(({ body: { articles } }) => {
-        expect(articles.length).toBeGreaterThan(0);
-        articles.forEach((article) => {
-          expect(article).toHaveProperty('comment_count');
-          expect(typeof article.comment_count).toBe('string');
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: expect.any(String),
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          comment_count: 11,
         });
       });
   });
 
- test("status:200, should return an articles array of article objects, with correct comment_count value", () => {
+  test("status:200 returns default comment_count 0 if an article has no comments", () => {
     return request(app)
-      .get("/api/articles")
+      .get("/api/articles/7")
       .expect(200)
       .then(({ body }) => {
-        const { articles } = body;
-        expect(articles[0]).toMatchObject({
-          author: "icellusedkars",
-          title: "Eight pug gifs that remind me of mitch",
-          article_id: 3,
-          topic: "mitch",
-          created_at: "2020-11-03T09:12:00.000Z",
-          votes: 0,
-          article_img_url:
-            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-          comment_count: "2",
-        });
-        expect(articles[6]).toMatchObject({
-          author: "butter_bridge",
-          title: "Living in the shadow of a great man",
-          article_id: 1,
-          topic: "mitch",
-          created_at: "2020-07-09T20:11:00.000Z",
-          votes: 100,
-          article_img_url:
-            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-          comment_count: "11",
+        expect(body.article).toMatchObject({
+          article_id: 7,
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: 0,
         });
       });
-  })
-})
+  });
+});
+

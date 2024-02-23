@@ -1,15 +1,20 @@
-const { selectAllArticles, selectArticle, updateArticleVotesByArticleId, selectArticleWithCommentCount}  = require("../models/article.model.js");
+const { selectAllArticles, selectArticle, updateArticleVotesByArticleId}  = require("../models/article.model.js");
 const {checkValidIncVotes} = require("../utils/votesValidation.js")
+const { topicValidation } = require('../utils/topicValidation');
 
 exports.getAllArticles = (req, res, next) => {
-     const { topic } = req.query;
-     selectAllArticles(topic)
-        .then(articles => {
-            res.status(200).send({ articles });
-        })
-        .catch((err) => {
-            next(err);
-      });
+    const { topic } = req.query;
+    
+ 
+    selectAllArticles(topic)
+    .then((articles) => {
+        //console.log(articles, " EEEEEE")
+      res.status(200).send({ articles });
+    })
+    .catch((err) => {
+        //console.log(err, "HEREEEEE")
+      next(err);
+    });
 };
 
 exports.getArticlesById = (req, res, next) => {
@@ -46,14 +51,3 @@ exports.patchArticleById = (req, res, next) => {
   });
 };
 
-// /api/articles/:article_id (comment_count)
-exports.getArticlesByIdWithCommentCount = (req, res, next) => {
-    const id = req.params.article_id
-    selectArticleWithCommentCount(id)
-    .then(article => {
-        res.status(200).send({ article });
-    })
-    .catch((err) => {
-        next(err);
-  });
-};

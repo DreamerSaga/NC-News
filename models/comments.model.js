@@ -1,6 +1,6 @@
 const db = require("../db/connection")
 const {usernameValidation} = require("../utils/usernameValidation");
-const {selectAllArticles} = require("../models/article.model.js")
+const {selectArticle} = require("../models/article.model.js")
 
 
 exports.selectCommentsByArticleId = (article_id) => {
@@ -54,7 +54,7 @@ exports.insertCommentByArticleId = (req, res) => {
       ($1, $2, $3)
       RETURNING *`;
     
-      return selectAllArticles(req.params.article_id)
+      return selectArticle(req.params.article_id)
         .then(() => {
           return usernameValidation(req.body.username);
         })

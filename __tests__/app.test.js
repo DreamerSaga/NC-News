@@ -193,6 +193,15 @@ describe("GET /api/articles", () => {
   //       expect(msg).toBe("No article found");
   //     });
   // });
+
+//   test('STATUS 404: responds with appropriate error message for when passed a non-existant topic name ', () => {
+//     return request(app)
+//     .get('/api/articles?topic=notATopic')
+//     .expect(404)
+//     .then(result => {
+//         expect(result.body.msg).toBe("Not found")
+//     })
+// });
 })
 
 describe("GET /api/articles/:article_id/comments", () => {

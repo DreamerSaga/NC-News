@@ -133,6 +133,66 @@ describe("GET /api/articles", () => {
         expect(response.body.articles).toBeSortedBy(response.body.created_at, { descending: true })
       })
   });
+
+  // GET /api/articles (topic query)
+  test("200 - returns all articles with mitch topics", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(12);
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(article.hasOwnProperty("body")).toBe(false);
+        });
+      });
+  });
+
+  test("200 - returns all articles with cats topics", () => {
+    return request(app)
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(1);
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+        articles.forEach((article) => {
+          expect(article.topic).toBe("cats");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(article.hasOwnProperty("body")).toBe(false);
+        });
+      });
+  });
+
+  test("200 will respond with empty array if given a valid topic which has not articles associated with it - returns all articles with paper topics", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(0);
+        expect(articles).toEqual([]);
+      });
+  });
+
+  // DOESNT PASS - how to make it custom error???
+  // test("404 - when non existent topic is given", () => {
+  //   return request(app)
+  //     .get("/api/articles?topic=pikachu")
+  //     .expect(404)
+  //     .then(({ body: { msg } }) => {
+  //       expect(msg).toBe("No article found");
+  //     });
+  // });
 })
 
 describe("GET /api/articles/:article_id/comments", () => {
@@ -272,8 +332,6 @@ describe("GET /api/users", () => {
       });
   });
 });
-
-
 
 
 // POST /api/....
@@ -570,4 +628,50 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
+// GET /api/articles/:article_id (comment_count)
+describe("GET /api/articles/:article_id (comment_count)", () => {
 
+ test("200 - returns all articles with comment_count", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBeGreaterThan(0);
+        articles.forEach((article) => {
+          expect(article).toHaveProperty('comment_count');
+          expect(typeof article.comment_count).toBe('string');
+        });
+      });
+  });
+
+ test("status:200, should return an articles array of article objects, with correct comment_count value", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles[0]).toMatchObject({
+          author: "icellusedkars",
+          title: "Eight pug gifs that remind me of mitch",
+          article_id: 3,
+          topic: "mitch",
+          created_at: "2020-11-03T09:12:00.000Z",
+          votes: 0,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          comment_count: "2",
+        });
+        expect(articles[6]).toMatchObject({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          comment_count: "11",
+        });
+      });
+  })
+})
